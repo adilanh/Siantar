@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-app-layout>
     <div class="w-full h-screen relative overflow-hidden">
         <div class="absolute inset-0">
             <img src="{{ asset('image/bg.png') }}" class="w-full h-full object-cover">
@@ -7,7 +7,7 @@
 
         <div class="absolute top-6 left-6 z-20">
             <a href="{{ url('/') }}" class="flex items-center text-black font-medium gap-2 hover:text-gray-700 transition">
-                <i class="fas fa-arrow-left text-black"></i> Kembali
+                <i class="bi bi-arrow-left text-black"></i> Kembali
             </a>
         </div>
 
@@ -37,7 +37,7 @@
                     @csrf
                     <div>
                         <label for="email" class="text-sm font-medium text-gray-700 flex gap-2 mb-1">
-                            <i class="fas fa-user text-orange"></i> Email
+                            <i class="bi bi-person text-orange"></i> Email
                         </label>
                         <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus placeholder="Masukkan email"
                             class="w-full px-4 py-3 rounded-xl bg-gray-50 border {{ $errors->has('email') ? 'border-red-500' : 'border-gray-200' }} focus:ring-2 focus:ring-orange-300 outline-none">
@@ -48,12 +48,12 @@
 
                     <div>
                         <label for="password" class="text-sm font-medium text-gray-700 flex gap-2 mb-1">
-                            <i class="fas fa-lock text-orange"></i> Kata Sandi
+                            <i class="bi bi-lock text-orange"></i> Kata Sandi
                         </label>
                         <div class="relative">
                             <input type="password" id="password" name="password" required placeholder="Masukkan kata sandi"
                                 class="w-full px-4 py-3 rounded-xl bg-gray-50 border {{ $errors->has('password') ? 'border-red-500' : 'border-gray-200' }} focus:ring-2 focus:ring-orange-300 outline-none pr-10">
-                            <i class="fas fa-eye absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" onclick="togglePassword()"></i>
+                            <i class="bi bi-eye absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" onclick="togglePassword()"></i>
                         </div>
                         @if ($errors->has('password'))
                             <p class="text-red-500 text-xs mt-1">{{ $errors->first('password') }}</p>
@@ -71,7 +71,7 @@
                     </div>
 
                     <button type="submit" class="w-full bg-orange text-white font-bold py-3 rounded-xl shadow-lg flex justify-center gap-2 hover:bg-orange-600 transition duration-200">
-                        <i class="fas fa-sign-in-alt"></i> Masuk
+                        <i class="bi bi-box-arrow-in-right"></i> Masuk
                     </button>
                 </form>
 
@@ -81,7 +81,7 @@
 
                 <div class="mt-4 flex justify-center">
                     <div class="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full text-xs font-semibold text-gray-600 shadow">
-                        <i class="fas fa-shield-alt text-orange"></i>
+                        <i class="bi bi-shield-lock text-orange"></i>
                         Koneksi Aman & Terenkripsi
                     </div>
                 </div>
@@ -95,14 +95,19 @@
                 const icon = event.currentTarget;
                 if (passwordInput.type === 'password') {
                     passwordInput.type = 'text';
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
                 } else {
                     passwordInput.type = 'password';
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
                 }
             }
         </script>
     </div>
-</x-guest-layout>
+</x-app-layout>
+
+
+
+
+

@@ -31,9 +31,9 @@
     </div>
     <div>
       <p class="text-[12px] font-bold mb-1 text-white">Kontak Kami</p>
-      <p class="text-[11px] flex gap-2"><i class="fa-solid fa-location-dot text-orange-500 mt-0.5"></i>Jl. Dokter Susilo No. 2, Kota Bandar Lampung</p>
-      <p class="text-[11px] flex gap-2 mt-1"><i class="fa-solid fa-phone text-orange-500"></i>(0721) 481544</p>
-      <p class="text-[11px] flex gap-2 mt-1"><i class="fa-solid fa-envelope text-orange-500"></i>kesbangpol@lampungprov.go.id</p>
+      <p class="text-[11px] flex gap-2"><i class="bi bi-geo-alt-fill text-orange-500 mt-0.5"></i>Jl. Dokter Susilo No. 2, Kota Bandar Lampung</p>
+      <p class="text-[11px] flex gap-2 mt-1"><i class="bi bi-telephone-fill text-orange-500"></i>(0721) 481544</p>
+      <p class="text-[11px] flex gap-2 mt-1"><i class="bi bi-envelope-fill text-orange-500"></i>kesbangpol@lampungprov.go.id</p>
     </div>
   </div>
   <div class="h-px bg-gray-400/40 mt-5 mb-3"></div>
@@ -41,3 +41,7 @@
     © 2025 SIANTAR – Badan Kesatuan Bangsa dan Politik. Hak Cipta Dilindungi.
   </p>
 </footer>
+
+
+
+

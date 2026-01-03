@@ -1,25 +1,5 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SIANTAR - Sistem Arsip Naskah dan Tata Persuratan</title>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <!-- AOS Animation CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
-</head>
-<body class="antialiased bg-white text-gray-900 scroll-smooth">
-
-    <!-- Header / Navbar -->
-    @include('partials.header')
+<x-app-layout>
+<div class="antialiased bg-white text-gray-900 scroll-smooth">
 
     <!-- Hero Section -->
     <section id="beranda" class="relative min-h-screen flex items-center overflow-hidden">
@@ -215,34 +195,12 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    @include('partials.footer')
+</div>
+</x-app-layout>
 
-    <!-- AOS Animation Script -->
-    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-    <script>
-        AOS.init({
-            once: true, // Animation happens only once - while scrolling down
-            offset: 50, // offset (in px) from the original trigger point
-            duration: 800, // values from 0 to 3000, with step 50ms
-            easing: 'ease-out-cubic', // default easing for AOS animations
-        });
 
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                // Check if target is on the current page
-                const targetId = this.getAttribute('href').substring(1);
-                const targetElement = document.getElementById(targetId);
-                
-                if (targetElement) {
-                    targetElement.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+
+
+
+
+

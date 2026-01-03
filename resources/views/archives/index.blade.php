@@ -50,3 +50,6 @@
     {{ $archives->links() }}
 </div>
 @endsection
+
+
+

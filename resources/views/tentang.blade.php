@@ -1,10 +1,9 @@
-<x-guest-layout>
-    @include('partials.header')
+<x-app-layout>
 
     <!-- BACK -->
     <div class="max-w-7xl mx-auto px-6 py-4 text-[12px] flex items-center gap-2">
       <a href="{{ route('welcome') }}" class="inline-flex items-center gap-2 hover:text-orange-500 transition cursor-pointer">
-        <i class="fa-solid fa-arrow-left text-gray-600"></i> <span class="text-gray-700">Kembali</span>
+        <i class="bi bi-arrow-left text-gray-600"></i> <span class="text-gray-700">Kembali</span>
       </a>
     </div>
 
@@ -42,7 +41,7 @@
 
       <div class="bg-[#FFF4E5] rounded-2xl p-6 text-center border shadow">
         <div class="w-10 h-10 mx-auto rounded-full bg-orange-500 flex items-center justify-center text-white mb-2">
-          <i class="fa-solid fa-inbox"></i>
+          <i class="bi bi-inbox"></i>
         </div>
         <p class="font-semibold text-[13px]">Surat Masuk</p>
         <p class="text-[11px] text-gray-600 mt-1">
@@ -52,7 +51,7 @@
 
       <div class="bg-[#FFF4E5] rounded-2xl p-6 text-center border shadow">
         <div class="w-10 h-10 mx-auto rounded-full bg-orange-500 flex items-center justify-center text-white mb-2">
-          <i class="fa-solid fa-paper-plane"></i>
+          <i class="bi bi-send"></i>
         </div>
         <p class="font-semibold text-[13px]">Surat Keluar</p>
         <p class="text-[11px] text-gray-600 mt-1">
@@ -62,7 +61,7 @@
 
       <div class="bg-[#FFF4E5] rounded-2xl p-6 text-center border shadow">
         <div class="w-10 h-10 mx-auto rounded-full bg-orange-500 flex items-center justify-center text-white mb-2">
-          <i class="fa-solid fa-box-archive"></i>
+          <i class="bi bi-archive"></i>
         </div>
         <p class="font-semibold text-[13px]">Arsip Digital</p>
         <p class="text-[11px] text-gray-600 mt-1">
@@ -77,7 +76,7 @@
         <div class="max-w-5xl mx-auto px-6">
           <div class="bg-white border border-gray-200 rounded-2xl shadow-md p-6 text-center">
             <div class="w-10 h-10 mx-auto rounded-full bg-orange-500 flex items-center justify-center text-white mb-2">
-              <i class="fa-solid fa-bullseye"></i>
+              <i class="bi bi-crosshair"></i>
             </div>
             <p class="font-bold text-[14px] mb-1">Tujuan Sistem</p>
             <p class="text-[12px] text-gray-600 leading-relaxed">
@@ -99,7 +98,7 @@
 
       <div class="flex gap-3">
         <div class="w-7 h-7 rounded-lg bg-[#FFF4E5] flex items-center justify-center">
-          <i class="fa-solid fa-clock text-[#F59E0B] text-[12px]"></i>
+          <i class="bi bi-clock text-[#F59E0B] text-[12px]"></i>
         </div>
         <div>
           <p class="font-semibold text-[13px]">Efisiensi Waktu</p>
@@ -111,7 +110,7 @@
 
       <div class="flex gap-3">
         <div class="w-7 h-7 rounded-lg bg-[#FFF4E5] flex items-center justify-center">
-          <i class="fa-solid fa-shield-halved text-[#F59E0B] text-[12px]"></i>
+          <i class="bi bi-shield-half text-[#F59E0B] text-[12px]"></i>
         </div>
         <div>
           <p class="font-semibold text-[13px]">Keamanan Data</p>
@@ -123,7 +122,7 @@
 
       <div class="flex gap-3">
         <div class="w-7 h-7 rounded-lg bg-[#FFF4E5] flex items-center justify-center">
-          <i class="fa-solid fa-magnifying-glass text-[#F59E0B] text-[12px]"></i>
+          <i class="bi bi-search text-[#F59E0B] text-[12px]"></i>
         </div>
         <div>
           <p class="font-semibold text-[13px]">Pencarian Mudah</p>
@@ -135,7 +134,7 @@
 
       <div class="flex gap-3">
         <div class="w-7 h-7 rounded-lg bg-[#FFF4E5] flex items-center justify-center">
-          <i class="fa-solid fa-scale-balanced text-[#F59E0B] text-[12px]"></i>
+          <i class="bi bi-clipboard-check text-[#F59E0B] text-[12px]"></i>
         </div>
         <div>
           <p class="font-semibold text-[13px]">Transparansi</p>
@@ -147,5 +146,8 @@
 
     </div>
 
-    @include('partials.footer')
-</x-guest-layout>
+</x-app-layout>
+
+
+
+

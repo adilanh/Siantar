@@ -1,30 +1,19 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kontak Kami — Final Match</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+@push('styles')
 <style>
-body{font-family:Inter,Arial}
-.card{box-shadow:0 8px 18px rgba(0,0,0,.06)}
-.icon-badge{width:48px;height:48px;border-radius:999px;background:linear-gradient(180deg,#FFEED3,#FFD9AA);display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.icon-badge{height:48px;width:48px;border-radius:999px;background:linear-gradient(180deg,#FFEED3,#FFD9AA);display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
 .icon-badge i{color:#FF8B00!important;font-size:18px}
 .card-title{font-size:12px;font-weight:700;margin-bottom:4px}
 .card-text{font-size:11px;color:#6B7280;line-height:16px}
 </style>
-</head>
+@endpush
 
-<body class="bg-white">
-
-@include('partials.header')
+<x-app-layout>
+<div class="bg-white">
 
 <!-- BACK BUTTON -->
 <div class="max-w-7xl mx-auto px-6 mt-3">
   <a href="{{ url()->previous() }}" class="inline-flex items-center gap-2 text-[12px] cursor-pointer hover:text-orange-500 transition">
-    <i class="fa-solid fa-arrow-left text-gray-600"></i>
+    <i class="bi bi-arrow-left text-gray-600"></i>
     <span class="text-gray-700">Kembali</span>
   </a>
 </div>
@@ -42,7 +31,7 @@ body{font-family:Inter,Arial}
 <div class="bg-[#E5E7EB] mt-8 py-10">
   <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-6">
     <div class="card bg-white rounded-xl border p-6 text-center">
-      <div class="icon-badge"><i class="fa-solid fa-location-dot"></i></div>
+      <div class="icon-badge"><i class="bi bi-geo-alt-fill"></i></div>
       <div class="card-title">Alamat Kantor</div>
       <div class="card-text">
         Jl. Basuki Rahmat No.21, Gedong Pakuwon<br>
@@ -52,17 +41,17 @@ body{font-family:Inter,Arial}
       </div>
     </div>
     <div class="card bg-white rounded-xl border p-6 text-center">
-      <div class="icon-badge"><i class="fa-solid fa-phone"></i></div>
+      <div class="icon-badge"><i class="bi bi-telephone-fill"></i></div>
       <div class="card-title">Telepon</div>
       <div class="card-text">(0721) 481544</div>
     </div>
     <div class="card bg-white rounded-xl border p-6 text-center">
-      <div class="icon-badge"><i class="fa-solid fa-envelope"></i></div>
+      <div class="icon-badge"><i class="bi bi-envelope-fill"></i></div>
       <div class="card-title">Email</div>
       <div class="card-text">kesbangpol@lampungprov.go.id</div>
     </div>
     <div class="card bg-white rounded-xl border p-6 text-center">
-      <div class="icon-badge"><i class="fa-solid fa-clock"></i></div>
+      <div class="icon-badge"><i class="bi bi-clock"></i></div>
       <div class="card-title">Jam Operasional</div>
       <div class="card-text">Senin – Jumat<br>08.00 – 16.00 WIB</div>
     </div>
@@ -120,7 +109,14 @@ body{font-family:Inter,Arial}
   tertib, transparan, dan modern.
 </div>
 
-@include('partials.footer')
+</div>
+</x-app-layout>
 
-</body>
-</html>
+
+
+
+
+
+
+
+

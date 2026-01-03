@@ -1,17 +1,10 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Daftar Akun - SIANTAR</title>
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:300,400,500,600,700,800&display=swap" rel="stylesheet" />
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+@push('styles')
+<style>
+        body { font-family: 'Poppins', sans-serif; }
     </style>
-</head>
-<body class="bg-gray-100 text-gray-900 antialiased min-h-screen flex items-center justify-center p-4 relative">
+@endpush
+<x-app-layout>
+<div class="bg-gray-100 text-gray-900 antialiased min-h-screen flex items-center justify-center p-4 relative">
 
     <!-- Background Image with Overlay -->
     <div class="absolute inset-0 z-0">
@@ -209,5 +202,10 @@
         </div>
     </div>
 
-</body>
-</html>
+</div>
+</x-app-layout>
+
+
+
+
+
