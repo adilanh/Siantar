@@ -3,14 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\IncomingLetter;
+use App\Models\User;
+use App\Services\GoogleDriveService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class IncomingLetterController extends Controller
 {
+    public function __construct(
+        protected GoogleDriveService $googleDrive
+    ) {}
     public function index(Request $request)
     {
         $query = IncomingLetter::query()->latest('received_date');
+        $this->applyRoleScope($query, $request->user());
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -31,10 +38,12 @@ class IncomingLetterController extends Controller
 
         $letters = $query->paginate(10)->withQueryString();
 
+        $statsBase = IncomingLetter::query();
+        $this->applyRoleScope($statsBase, $request->user());
         $stats = [
-            'total' => IncomingLetter::count(),
-            'pending' => IncomingLetter::whereIn('status', ['Baru', 'Menunggu'])->count(),
-            'processed' => IncomingLetter::whereIn('status', ['Diproses', 'Selesai'])->count(),
+            'total' => (clone $statsBase)->count(),
+            'pending' => (clone $statsBase)->whereIn('status', ['Baru', 'Menunggu'])->count(),
+            'processed' => (clone $statsBase)->whereIn('status', ['Diproses', 'Selesai'])->count(),
         ];
 
         $statusOptions = ['Baru', 'Menunggu', 'Diproses', 'Selesai'];
@@ -75,10 +84,40 @@ class IncomingLetterController extends Controller
         ]);
 
         $data['status'] = $data['status'] ?? 'Baru';
+        $data['forwarded_to'] = null;
         $data['user_id'] = $request->user()->id;
 
         if ($request->hasFile('file')) {
-            $data['file_path'] = $request->file('file')->store('incoming_letters', 'public');
+            $file = $request->file('file');
+            $originalFilename = $file->getClientOriginalName();
+            $mimeType = $file->getMimeType();
+            $fileSize = $file->getSize();
+
+            // Coba upload ke Google Drive terlebih dahulu
+            if ($this->googleDrive->isConfigured()) {
+                try {
+                    $gdriveResult = $this->googleDrive->uploadFile($file);
+
+                    if ($gdriveResult) {
+                        $data['gdrive_file_id'] = $gdriveResult['id'];
+                        $data['gdrive_file_name'] = $gdriveResult['name'];
+                        $data['original_filename'] = $originalFilename;
+                        $data['file_mime'] = $mimeType;
+                        $data['file_size'] = $fileSize;
+                        $data['storage_disk'] = 'google_drive';
+                    } else {
+                        // Upload gagal, fallback ke local
+                        $this->storeFileLocally($file, $data);
+                    }
+                } catch (\Exception $e) {
+                    // Fallback ke local storage jika Google Drive gagal
+                    \Log::warning('Google Drive upload failed, falling back to local storage: ' . $e->getMessage());
+                    $this->storeFileLocally($file, $data);
+                }
+            } else {
+                // Local storage jika Google Drive tidak dikonfigurasi
+                $this->storeFileLocally($file, $data);
+            }
         }
 
         IncomingLetter::create($data);
@@ -88,8 +127,12 @@ class IncomingLetterController extends Controller
 
     public function updateInstruction(Request $request, IncomingLetter $incomingLetter)
     {
-        if (!$request->user()->hasAnyRole(['sekretaris', 'admin'])) {
+        if (!$request->user()->hasAnyRole(['sekretariat', 'admin'])) {
             abort(403);
+        }
+
+        if ($incomingLetter->status === 'Selesai') {
+            return back()->with('error', 'Surat sudah selesai diproses.');
         }
 
         $data = $request->validate([
@@ -98,23 +141,22 @@ class IncomingLetterController extends Controller
 
         $incomingLetter->fill([
             'instruction' => $data['instruction'],
-            'forwarded_to' => 'kepala_badan',
             'status' => 'Diproses',
         ]);
         $incomingLetter->save();
 
         return redirect()->route('detail-surat-masuk', $incomingLetter)
-            ->with('success', 'Instruksi sekretaris berhasil disimpan.');
+            ->with('success', 'Instruksi berhasil disimpan.');
     }
 
     public function updateFinalDirection(Request $request, IncomingLetter $incomingLetter)
     {
-        if (!$request->user()->hasAnyRole(['kepala_badan', 'admin'])) {
+        if (!$request->user()->hasAnyRole(['admin'])) {
             abort(403);
         }
 
-        if ($request->user()->hasRole('kepala_badan') && $incomingLetter->forwarded_to !== 'kepala_badan') {
-            abort(403);
+        if ($incomingLetter->status === 'Selesai') {
+            return back()->with('error', 'Surat sudah selesai.');
         }
 
         $data = $request->validate([
@@ -128,38 +170,82 @@ class IncomingLetterController extends Controller
         $incomingLetter->save();
 
         return redirect()->route('detail-surat-masuk', $incomingLetter)
-            ->with('success', 'Arahan kepala badan berhasil disimpan.');
+            ->with('success', 'Arahan final berhasil disimpan.');
     }
 
     public function show(IncomingLetter $incomingLetter)
     {
-        $attachment = $this->buildAttachment($incomingLetter->file_path);
+        $attachment = $this->buildAttachment($incomingLetter);
 
         return view('detail-surat-masuk', compact('incomingLetter', 'attachment'));
     }
 
     public function download(IncomingLetter $incomingLetter)
     {
-        if (!$incomingLetter->file_path || !Storage::disk('public')->exists($incomingLetter->file_path)) {
+        // Jika file disimpan di Google Drive
+        if ($incomingLetter->gdrive_file_id) {
+            $downloadUrl = $this->googleDrive->getDownloadUrl($incomingLetter->gdrive_file_id);
+            return redirect()->away($downloadUrl);
+        }
+
+        // Fallback ke local storage
+        $diskName = $incomingLetter->storage_disk ?? $this->lettersDiskName();
+        $disk = Storage::disk($diskName);
+
+        if (!$incomingLetter->file_path || !$disk->exists($incomingLetter->file_path)) {
             return back()->with('error', 'File tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download($incomingLetter->file_path);
+        return $this->streamDownload($disk, $incomingLetter->file_path);
     }
 
-    private function buildAttachment(?string $path): ?array
+    private function buildAttachment(IncomingLetter $letter): ?array
     {
-        if (!$path || !Storage::disk('public')->exists($path)) {
+        // Jika file di Google Drive
+        if ($letter->gdrive_file_id) {
+            return [
+                'name' => $letter->gdrive_file_name ?? $letter->original_filename ?? 'File',
+                'size' => $this->formatBytes($letter->file_size ?? 0),
+                'url' => route('surat-masuk.download', $letter),
+                'preview_url' => $this->googleDrive->getPreviewUrl($letter->gdrive_file_id),
+                'view_url' => $this->googleDrive->getViewUrl($letter->gdrive_file_id),
+                'is_gdrive' => true,
+                'mime_type' => $letter->file_mime,
+            ];
+        }
+
+        // Fallback ke local storage
+        $path = $letter->file_path;
+        if (!$path) {
             return null;
         }
 
-        $size = Storage::disk('public')->size($path);
+        $disk = Storage::disk($letter->storage_disk ?? $this->lettersDiskName());
+        if (!$disk->exists($path)) {
+            return null;
+        }
+
+        $size = $this->safeSize($disk, $path);
 
         return [
-            'name' => basename($path),
+            'name' => $letter->original_filename ?? basename($path),
             'size' => $this->formatBytes($size),
-            'url' => Storage::disk('public')->url($path),
+            'url' => route('surat-masuk.download', $letter),
+            'is_gdrive' => false,
+            'mime_type' => $letter->file_mime,
         ];
+    }
+
+    private function storeFileLocally($file, array &$data): void
+    {
+        $disk = $this->lettersDiskName();
+        $path = $file->store('incoming_letters', $disk);
+
+        $data['file_path'] = $path;
+        $data['storage_disk'] = $disk;
+        $data['original_filename'] = $file->getClientOriginalName();
+        $data['file_mime'] = $file->getMimeType();
+        $data['file_size'] = $file->getSize();
     }
 
     private function formatBytes(int $bytes): string
@@ -171,5 +257,53 @@ class IncomingLetterController extends Controller
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $i = (int) floor(log($bytes, 1024));
         return round($bytes / pow(1024, $i), 2) . ' ' . $units[$i];
+    }
+
+    private function lettersDiskName(): string
+    {
+        return config('filesystems.letters_disk', 'public');
+    }
+
+    private function lettersDisk()
+    {
+        return Storage::disk($this->lettersDiskName());
+    }
+
+    private function safeSize($disk, string $path): int
+    {
+        try {
+            return $disk->size($path);
+        } catch (\Throwable $exception) {
+            return 0;
+        }
+    }
+
+    private function streamDownload($disk, string $path)
+    {
+        $stream = $disk->readStream($path);
+        if (!$stream) {
+            return back()->with('error', 'File tidak ditemukan.');
+        }
+
+        return response()->streamDownload(function () use ($stream) {
+            fpassthru($stream);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }, basename($path));
+    }
+
+    private function applyRoleScope(Builder $query, ?User $user): void
+    {
+        if (!$user || $user->hasRole('admin')) {
+            return;
+        }
+
+        // Sekretariat hanya melihat surat dari user dengan role sekretariat atau admin
+        if ($user->hasRole('sekretariat')) {
+            $query->whereHas('user', function (Builder $query) {
+                $query->whereIn('role', ['sekretariat', 'admin']);
+            });
+        }
     }
 }

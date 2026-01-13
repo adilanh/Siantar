@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\ArchiveSearchController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\IncomingLetterController;
 use App\Http\Controllers\OutgoingLetterController;
 use App\Http\Controllers\ProfileController;
@@ -60,6 +62,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('pengaturan.index');
 
     Route::resource('archives', ArchiveController::class);
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    });
+
+    // Google Drive OAuth Routes (Admin Only)
+    Route::get('/google/auth', [GoogleAuthController::class, 'redirect'])->name('google.auth');
+    Route::get('/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
+    Route::get('/google/test', [GoogleAuthController::class, 'test'])->name('google.test');
 });
 
 Route::middleware('auth')->group(function () {

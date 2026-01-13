@@ -1,115 +1,123 @@
-
 <x-app-layout>
   @php
-    $status = $outgoingLetter->status ?? 'Menunggu';
-    $statusClass = match ($status) {
-      'Menunggu' => 'badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle',
-      'Diproses' => 'badge rounded-pill bg-orange-100 text-orange-700 border border-orange-200',
-      'Terkirim' => 'badge rounded-pill bg-success-subtle text-success border border-success-subtle',
-      'Selesai' => 'badge rounded-pill bg-success-subtle text-success border border-success-subtle',
-      default => 'badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle',
-    };
+  $status = $outgoingLetter->status ?? 'Menunggu';
+  $statusClass = match ($status) {
+  'Menunggu' => 'bg-amber-100 text-amber-700 border border-amber-200',
+  'Diproses' => 'bg-orange-100 text-orange-700 border border-orange-200',
+  'Terkirim' => 'bg-green-100 text-green-700 border border-green-200',
+  'Selesai' => 'bg-green-100 text-green-700 border border-green-200',
+  default => 'bg-gray-100 text-gray-700 border border-gray-200',
+  };
   @endphp
-  <div class="bg-[#f5f7fb]">
-    <main class="container py-4">
-    <a href="{{ route('surat-keluar.index') }}" class="text-muted text-decoration-none fw-semibold d-inline-flex align-items-center gap-2 hover:text-gray-800">
-      <i class="bi bi-arrow-left"></i> Kembali
-    </a>
+  <div class="min-h-screen bg-[#f5f7fb]">
+    <main class="max-w-[1180px] mx-auto px-4 sm:px-6 py-6">
+      <a href="{{ route('surat-keluar.index') }}" class="inline-flex items-center gap-2 text-gray-500 hover:text-orange-500 font-semibold text-sm no-underline transition-colors">
+        <i class="bi bi-arrow-left"></i> Kembali ke Surat Keluar
+      </a>
 
-    <h1 class="mt-2 mb-1 text-3xl font-extrabold text-gray-900">{{ $outgoingLetter->subject }}</h1>
-    <p class="text-gray-500 mb-4">Informasi lengkap mengenai surat keluar ({{ $outgoingLetter->letter_number }})</p>
+      <h1 class="mt-4 mb-1 text-2xl font-extrabold text-gray-900">{{ $outgoingLetter->subject }}</h1>
+      <p class="text-gray-500 text-sm mb-6">Informasi lengkap mengenai surat keluar ({{ $outgoingLetter->letter_number }})</p>
 
-    <section class="card border-0 shadow-sm mt-3">
-      <div class="card-body">
-        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
-          <div class="d-flex flex-column gap-2">
-            <span class="{{ $statusClass }}">{{ $status }}</span>
+      <section class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+        <div class="flex items-start justify-between flex-wrap gap-3 mb-5">
+          <div class="flex flex-col gap-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $statusClass }}">{{ $status }}</span>
             @if ($outgoingLetter->category)
-              <span class="badge rounded-pill bg-orange-100 text-orange-700 border border-orange-200">{{ $outgoingLetter->category }}</span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">{{ $outgoingLetter->category }}</span>
             @endif
           </div>
-          <button class="btn btn-light btn-sm border" aria-label="menu"><i class="bi bi-three-dots-vertical"></i></button>
+          <button class="p-2 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="menu"><i class="bi bi-three-dots-vertical"></i></button>
         </div>
 
-        <div class="row g-4">
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Nomor Surat</div>
-            <div class="fw-bold text-gray-900">{{ $outgoingLetter->letter_number }}</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Nomor Surat</div>
+            <div class="font-bold text-gray-900">{{ $outgoingLetter->letter_number }}</div>
           </div>
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Tujuan</div>
-            <div class="fw-bold text-gray-900">{{ $outgoingLetter->recipient }}</div>
-          </div>
-
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Tanggal Surat</div>
-            <div class="fw-bold text-gray-900">{{ optional($outgoingLetter->letter_date)->format('d M Y') }}</div>
-          </div>
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Perihal</div>
-            <div class="fw-bold text-gray-900">{{ $outgoingLetter->subject }}</div>
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Tujuan</div>
+            <div class="font-bold text-gray-900">{{ $outgoingLetter->recipient }}</div>
           </div>
 
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Jenis Surat</div>
-            <div class="fw-bold text-gray-900">Surat Keluar</div>
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Tanggal Surat</div>
+            <div class="font-bold text-gray-900">{{ optional($outgoingLetter->letter_date)->format('d M Y') }}</div>
           </div>
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Kategori</div>
-            <div class="fw-bold text-gray-900">{{ $outgoingLetter->category ?? '-' }}</div>
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Perihal</div>
+            <div class="font-bold text-gray-900">{{ $outgoingLetter->subject }}</div>
+          </div>
+
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Jenis Surat</div>
+            <div class="font-bold text-gray-900">Surat Keluar</div>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Kategori</div>
+            <div class="font-bold text-gray-900">{{ $outgoingLetter->category ?? '-' }}</div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="card border-0 shadow-sm mt-3">
-      <div class="card-body">
-        <div class="d-flex align-items-center gap-2 fw-bold text-gray-900 mb-3">
-          <span class="d-inline-flex align-items-center justify-content-center rounded-2 bg-orange-100 text-orange-600 border border-orange-200 w-7 h-7 text-sm">
+      <section class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mt-4">
+        <div class="flex items-center gap-3 font-bold text-gray-900 mb-4">
+          <span class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-sm">
             <i class="bi bi-file-earmark-text"></i>
           </span>
           Ringkasan Isi Surat
         </div>
-        <p class="text-gray-700 small mb-0">
+        <p class="text-gray-600 text-sm">
           {{ $outgoingLetter->summary ?? 'Ringkasan surat belum tersedia.' }}
         </p>
-      </div>
-    </section>
+      </section>
 
-    <section class="card border-0 shadow-sm mt-3">
-      <div class="card-body">
-        <div class="d-flex align-items-center gap-2 fw-bold text-gray-900 mb-3">
-          <span class="d-inline-flex align-items-center justify-content-center rounded-2 bg-orange-100 text-orange-600 border border-orange-200 w-7 h-7 text-sm">
+      <section class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mt-4">
+        <div class="flex items-center gap-3 font-bold text-gray-900 mb-4">
+          <span class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-sm">
             <i class="bi bi-paperclip"></i>
           </span>
           Lampiran Dokumen
         </div>
         @if ($attachment)
-          @php
-            $extension = strtolower(pathinfo($attachment['name'], PATHINFO_EXTENSION));
-            $fileBadge = $extension === 'pdf' ? 'PDF' : strtoupper(substr($extension, 0, 1));
-            $fileBadgeClass = match (true) {
-              in_array($extension, ['doc', 'docx'], true) => 'bg-blue-100 text-blue-700 border border-blue-200',
-              $extension === 'pdf' => 'bg-red-100 text-red-700 border border-red-200',
-              default => 'bg-gray-100 text-gray-700 border border-gray-200',
-            };
-          @endphp
-          <div class="d-flex align-items-center gap-3 border border-gray-200 rounded-3 p-3">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-2 px-2 py-1 fw-bold small {{ $fileBadgeClass }}">{{ $fileBadge }}</div>
-            <div>
-              <div class="fw-bold text-gray-900">{{ $attachment['name'] }}</div>
-              <div class="text-muted small">{{ strtoupper($extension) }} - {{ $attachment['size'] }}</div>
-            </div>
-            <div class="ms-auto d-flex gap-2">
-              <a class="btn btn-sm border border-[#ff7f00] text-[#ff7f00] hover:bg-orange-50 fw-bold" href="{{ $attachment['url'] }}" target="_blank" rel="noopener">Lihat</a>
-              <a class="btn btn-sm text-white bg-[#ff7f00] hover:bg-[#f36f00] border-0 fw-bold" href="{{ route('surat-keluar.download', $outgoingLetter) }}">Unduh</a>
-            </div>
+        @php
+        $extension = strtolower(pathinfo($attachment['name'], PATHINFO_EXTENSION));
+        $fileBadge = $extension === 'pdf' ? 'PDF' : strtoupper(substr($extension, 0, 1));
+        $fileBadgeClass = match (true) {
+        in_array($extension, ['doc', 'docx'], true) => 'bg-blue-100 text-blue-700',
+        $extension === 'pdf' => 'bg-red-100 text-red-700',
+        default => 'bg-gray-100 text-gray-700',
+        };
+        $isPreviewable = in_array($extension, ['pdf', 'jpg', 'jpeg', 'png', 'gif'], true);
+        @endphp
+        <div class="flex items-center gap-4 border border-gray-200 rounded-xl p-4">
+          <div class="inline-flex items-center justify-center px-3 py-1 rounded-lg font-bold text-xs {{ $fileBadgeClass }}">{{ $fileBadge }}</div>
+          <div class="flex-1">
+            <div class="font-bold text-gray-900">{{ $attachment['name'] }}</div>
+            <div class="text-gray-500 text-xs">{{ strtoupper($extension) }} - {{ $attachment['size'] }}</div>
           </div>
-        @else
-          <div class="text-muted">Tidak ada lampiran untuk surat ini.</div>
+          <div class="flex gap-2">
+            @if (!empty($attachment['is_gdrive']) && !empty($attachment['view_url']))
+            <a class="inline-flex items-center px-4 py-2 border border-orange-500 text-orange-500 rounded-lg text-sm font-bold hover:bg-orange-50 transition no-underline" href="{{ $attachment['view_url'] }}" target="_blank" rel="noopener">Lihat</a>
+            @else
+            <a class="inline-flex items-center px-4 py-2 border border-orange-500 text-orange-500 rounded-lg text-sm font-bold hover:bg-orange-50 transition no-underline" href="{{ $attachment['url'] }}" target="_blank" rel="noopener">Lihat</a>
+            @endif
+            <a class="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold hover:bg-orange-600 transition no-underline" href="{{ route('surat-keluar.download', $outgoingLetter) }}">Unduh</a>
+          </div>
+        </div>
+
+        {{-- Preview File untuk Google Drive --}}
+        @if (!empty($attachment['is_gdrive']) && !empty($attachment['preview_url']) && $isPreviewable)
+        <div class="mt-4">
+          <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Preview Dokumen</div>
+          <div class="w-full rounded-xl overflow-hidden border border-gray-200" style="height: 600px;">
+            <iframe src="{{ $attachment['preview_url'] }}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+          </div>
+        </div>
         @endif
-      </div>
-    </section>
+        @else
+        <div class="text-gray-500 text-sm">Tidak ada lampiran untuk surat ini.</div>
+        @endif
+      </section>
     </main>
   </div>
 </x-app-layout>

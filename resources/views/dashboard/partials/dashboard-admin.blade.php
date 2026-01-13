@@ -71,7 +71,7 @@
         <section>
             <h6 class="font-bold mb-3">Menu Admin</h6>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <a href="{{ route('surat-masuk.index') }}" class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3 hover:border-blue-200 hover:bg-blue-100/70 transition">
+                <a href="{{ route('surat-masuk.index') }}" class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3 text-gray-900 no-underline hover:border-blue-200 hover:bg-blue-100/70 transition">
                     <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 grid place-items-center text-lg flex-shrink-0">
                         <i class="bi bi-inbox"></i>
                     </div>
@@ -81,7 +81,7 @@
                     </div>
                 </a>
 
-                <a href="{{ route('surat-keluar.index') }}" class="bg-green-50 border border-green-100 rounded-2xl p-4 flex gap-3 hover:border-green-200 hover:bg-green-100/70 transition">
+                <a href="{{ route('surat-keluar.index') }}" class="bg-green-50 border border-green-100 rounded-2xl p-4 flex gap-3 text-gray-900 no-underline hover:border-green-200 hover:bg-green-100/70 transition">
                     <div class="w-10 h-10 rounded-xl bg-green-100 text-green-600 grid place-items-center text-lg flex-shrink-0">
                         <i class="bi bi-send"></i>
                     </div>
@@ -91,7 +91,7 @@
                     </div>
                 </a>
 
-                <a href="{{ route('cari-arsip') }}" class="bg-purple-50 border border-purple-100 rounded-2xl p-4 flex gap-3 hover:border-purple-200 hover:bg-purple-100/70 transition">
+                <a href="{{ route('cari-arsip') }}" class="bg-purple-50 border border-purple-100 rounded-2xl p-4 flex gap-3 text-gray-900 no-underline hover:border-purple-200 hover:bg-purple-100/70 transition">
                     <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 grid place-items-center text-lg flex-shrink-0">
                         <i class="bi bi-archive"></i>
                     </div>
@@ -101,13 +101,13 @@
                     </div>
                 </a>
 
-                <a href="#" class="bg-orange-50 border border-orange-100 rounded-2xl p-4 flex gap-3 hover:border-orange-200 hover:bg-orange-100/70 transition">
+                <a href="{{ route('admin.users.index') }}" class="bg-orange-50 border border-orange-100 rounded-2xl p-4 flex gap-3 text-gray-900 no-underline hover:border-orange-200 hover:bg-orange-100/70 transition">
                     <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 grid place-items-center text-lg flex-shrink-0">
-                        <i class="bi bi-gear"></i>
+                        <i class="bi bi-people-fill"></i>
                     </div>
                     <div>
-                        <p class="font-extrabold text-sm">Pengaturan</p>
-                        <p class="text-xs text-gray-500 mt-1">Konfigurasi</p>
+                        <p class="font-extrabold text-sm">Kelola Pengguna</p>
+                        <p class="text-xs text-gray-500 mt-1">Akun & akses</p>
                     </div>
                 </a>
             </div>

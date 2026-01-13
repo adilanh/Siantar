@@ -1,205 +1,203 @@
-
 <x-app-layout>
   @php
-    $status = $incomingLetter->status ?? 'Baru';
-    $statusClass = match ($status) {
-      'Baru' => 'badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle',
-      'Menunggu' => 'badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle',
-      'Diproses' => 'badge rounded-pill bg-orange-100 text-orange-700 border border-orange-200',
-      'Selesai' => 'badge rounded-pill bg-success-subtle text-success border border-success-subtle',
-      default => 'badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle',
-    };
-    $canInputInstruction = auth()->user()->hasAnyRole(['sekretaris', 'admin']);
-    $canInputFinal = auth()->user()->hasAnyRole(['kepala_badan', 'admin']);
-    $forwardedLabel = \App\Models\User::roleLabelFor($incomingLetter->forwarded_to);
+  $status = $incomingLetter->status ?? 'Baru';
+  $statusClass = match ($status) {
+  'Baru' => 'bg-blue-100 text-blue-700 border border-blue-200',
+  'Menunggu' => 'bg-amber-100 text-amber-700 border border-amber-200',
+  'Diproses' => 'bg-orange-100 text-orange-700 border border-orange-200',
+  'Selesai' => 'bg-green-100 text-green-700 border border-green-200',
+  default => 'bg-gray-100 text-gray-700 border border-gray-200',
+  };
+  $canInputInstruction = auth()->user()->hasAnyRole(['sekretariat', 'admin'])
+  && $incomingLetter->status !== 'Selesai';
+  $canInputFinal = auth()->user()->hasAnyRole(['admin'])
+  && $incomingLetter->status !== 'Selesai';
   @endphp
-  <div class="bg-[#f5f7fb]">
-    <main class="container py-4">
-    <a href="{{ route('surat-masuk.index') }}" class="text-muted text-decoration-none fw-semibold d-inline-flex align-items-center gap-2 hover:text-gray-800">
-      <i class="bi bi-arrow-left"></i> Kembali
-    </a>
+  <div class="min-h-screen bg-[#f5f7fb]">
+    <main class="max-w-[1180px] mx-auto px-4 sm:px-6 py-6">
+      <a href="{{ route('surat-masuk.index') }}" class="inline-flex items-center gap-2 text-gray-500 hover:text-orange-500 font-semibold text-sm no-underline transition-colors">
+        <i class="bi bi-arrow-left"></i> Kembali ke Surat Masuk
+      </a>
 
-    <h1 class="mt-2 mb-1 text-3xl font-extrabold text-gray-900">{{ $incomingLetter->subject }}</h1>
-    <p class="text-gray-500 mb-4">Informasi lengkap mengenai surat masuk ({{ $incomingLetter->letter_number }})</p>
+      <h1 class="mt-4 mb-1 text-2xl font-extrabold text-gray-900">{{ $incomingLetter->subject }}</h1>
+      <p class="text-gray-500 text-sm mb-6">Informasi lengkap mengenai surat masuk ({{ $incomingLetter->letter_number }})</p>
 
-    <section class="card border-0 shadow-sm mt-3">
-      <div class="card-body">
-        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
-          <div class="d-flex gap-2 flex-wrap">
-            <span class="{{ $statusClass }}">{{ $status }}</span>
+      @if (session('success'))
+      <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-sm mb-4">{{ session('success') }}</div>
+      @endif
+      @if (session('error'))
+      <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl text-sm mb-4">{{ session('error') }}</div>
+      @endif
+
+      <section class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+        <div class="flex items-start justify-between flex-wrap gap-3 mb-5">
+          <div class="flex gap-2 flex-wrap">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $statusClass }}">{{ $status }}</span>
             @if ($incomingLetter->category)
-              <span class="badge rounded-pill bg-orange-100 text-orange-700 border border-orange-200">{{ $incomingLetter->category }}</span>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">{{ $incomingLetter->category }}</span>
             @endif
           </div>
-          <button class="btn btn-light btn-sm border" aria-label="menu"><i class="bi bi-three-dots-vertical"></i></button>
+          <button class="p-2 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="menu"><i class="bi bi-three-dots-vertical"></i></button>
         </div>
 
-        <div class="row g-4">
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Nomor Surat</div>
-            <div class="fw-bold text-gray-900">{{ $incomingLetter->letter_number }}</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Nomor Surat</div>
+            <div class="font-bold text-gray-900">{{ $incomingLetter->letter_number }}</div>
           </div>
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Pengirim</div>
-            <div class="fw-bold text-gray-900">{{ $incomingLetter->sender }}</div>
-          </div>
-
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Tanggal Surat</div>
-            <div class="fw-bold text-gray-900">{{ optional($incomingLetter->letter_date)->format('d M Y') }}</div>
-          </div>
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Perihal</div>
-            <div class="fw-bold text-gray-900">{{ $incomingLetter->subject }}</div>
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Pengirim</div>
+            <div class="font-bold text-gray-900">{{ $incomingLetter->sender }}</div>
           </div>
 
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Tanggal Diterima</div>
-            <div class="fw-bold text-gray-900">{{ optional($incomingLetter->received_date)->format('d M Y') }}</div>
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Tanggal Surat</div>
+            <div class="font-bold text-gray-900">{{ optional($incomingLetter->letter_date)->format('d M Y') }}</div>
           </div>
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Kategori</div>
-            <div class="fw-bold text-gray-900">{{ $incomingLetter->category ?? '-' }}</div>
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Perihal</div>
+            <div class="font-bold text-gray-900">{{ $incomingLetter->subject }}</div>
+          </div>
+
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Tanggal Diterima</div>
+            <div class="font-bold text-gray-900">{{ optional($incomingLetter->received_date)->format('d M Y') }}</div>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Kategori</div>
+            <div class="font-bold text-gray-900">{{ $incomingLetter->category ?? '-' }}</div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="card border-0 shadow-sm mt-3">
-      <div class="card-body">
-        <div class="d-flex align-items-center gap-2 fw-bold text-gray-900 mb-3">
-          <span class="d-inline-flex align-items-center justify-content-center rounded-2 bg-orange-100 text-orange-600 border border-orange-200 w-7 h-7 text-sm">
+      <section class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mt-4">
+        <div class="flex items-center gap-3 font-bold text-gray-900 mb-4">
+          <span class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-sm">
             <i class="bi bi-file-earmark-text"></i>
           </span>
           Ringkasan Isi Surat
         </div>
-        <p class="text-gray-700 small mb-0">
+        <p class="text-gray-600 text-sm">
           {{ $incomingLetter->summary ?? 'Ringkasan surat belum tersedia.' }}
         </p>
-      </div>
-    </section>
+      </section>
 
-    <section class="card border-0 shadow-sm mt-3">
-      <div class="card-body">
-        <div class="d-flex align-items-center gap-2 fw-bold text-gray-900 mb-3">
-          <span class="d-inline-flex align-items-center justify-content-center rounded-2 bg-orange-100 text-orange-600 border border-orange-200 w-7 h-7 text-sm">
+      <section class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mt-4">
+        <div class="flex items-center gap-3 font-bold text-gray-900 mb-4">
+          <span class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-sm">
             <i class="bi bi-journal-check"></i>
           </span>
           Disposisi & Arahan
         </div>
-        <div class="row g-4">
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Instruksi Sekretaris</div>
-            <div class="fw-bold text-gray-900">{!! nl2br(e($incomingLetter->instruction ?? '-')) !!}</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Instruksi</div>
+            <div class="font-bold text-gray-900">{!! nl2br(e($incomingLetter->instruction ?? '-')) !!}</div>
           </div>
-          <div class="col-lg-6">
-            <div class="text-muted small fw-bold">Diteruskan Kepada</div>
-            <div class="fw-bold text-gray-900">{{ $incomingLetter->forwarded_to ? $forwardedLabel : '-' }}</div>
+          <div>
+            <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Arahan Final</div>
+            <div class="font-bold text-gray-900">{!! nl2br(e($incomingLetter->final_direction ?? '-')) !!}</div>
           </div>
-          <div class="col-12">
-            <div class="text-muted small fw-bold">Arahan Kepala Badan</div>
-            <div class="fw-bold text-gray-900">{!! nl2br(e($incomingLetter->final_direction ?? '-')) !!}</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    @if ($canInputInstruction)
-      <section class="card border-0 shadow-sm mt-3">
-        <div class="card-body">
-          <div class="d-flex align-items-center gap-2 fw-bold text-gray-900 mb-3">
-            <span class="d-inline-flex align-items-center justify-content-center rounded-2 bg-orange-100 text-orange-600 border border-orange-200 w-7 h-7 text-sm">
-              <i class="bi bi-pencil-square"></i>
-            </span>
-            Instruksi Sekretaris
-          </div>
-          <form method="POST" action="{{ route('surat-masuk.instruction', $incomingLetter) }}">
-            @csrf
-            @method('PATCH')
-            <div class="mb-3">
-              <label class="text-muted small fw-bold mb-2 d-block">Instruksi</label>
-              <textarea class="form-control" name="instruction" rows="4" placeholder="Tuliskan instruksi untuk disposisi..." required>{{ old('instruction', $incomingLetter->instruction) }}</textarea>
-              @error('instruction')
-                <div class="text-danger small mt-1">{{ $message }}</div>
-              @enderror
-            </div>
-            <div class="d-flex justify-content-end">
-              <button class="btn text-white bg-[#ff7f00] hover:bg-[#f36f00] border-0 fw-bold" type="submit">
-                <i class="bi bi-send me-2"></i> Teruskan ke Kepala Badan
-              </button>
-            </div>
-          </form>
         </div>
       </section>
-    @endif
 
-    @if ($canInputFinal)
-      <section class="card border-0 shadow-sm mt-3">
-        <div class="card-body">
-          <div class="d-flex align-items-center gap-2 fw-bold text-gray-900 mb-3">
-            <span class="d-inline-flex align-items-center justify-content-center rounded-2 bg-orange-100 text-orange-600 border border-orange-200 w-7 h-7 text-sm">
-              <i class="bi bi-check2-square"></i>
-            </span>
-            Arahan Kepala Badan
-          </div>
-          @if ($incomingLetter->forwarded_to !== 'kepala_badan' && !auth()->user()->hasRole('admin'))
-            <div class="text-muted small">Menunggu instruksi dari sekretaris sebelum memberikan arahan final.</div>
-          @else
-            <form method="POST" action="{{ route('surat-masuk.final-direction', $incomingLetter) }}">
-              @csrf
-              @method('PATCH')
-              <div class="mb-3">
-                <label class="text-muted small fw-bold mb-2 d-block">Arahan Final</label>
-                <textarea class="form-control" name="final_direction" rows="4" placeholder="Tuliskan arahan final..." required>{{ old('final_direction', $incomingLetter->final_direction) }}</textarea>
-                @error('final_direction')
-                  <div class="text-danger small mt-1">{{ $message }}</div>
-                @enderror
-              </div>
-              <div class="d-flex justify-content-end">
-                <button class="btn text-white bg-[#2f855a] hover:bg-[#276749] border-0 fw-bold" type="submit">
-                  <i class="bi bi-check-circle me-2"></i> Tandai Selesai
-                </button>
-              </div>
-            </form>
-          @endif
+      @if ($canInputInstruction)
+      <section class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mt-4">
+        <div class="flex items-center gap-3 font-bold text-gray-900 mb-4">
+          <span class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-sm">
+            <i class="bi bi-pencil-square"></i>
+          </span>
+          Instruksi
         </div>
+        <form method="POST" action="{{ route('surat-masuk.instruction', $incomingLetter) }}">
+          @csrf
+          @method('PATCH')
+          <div class="mb-4">
+            <label class="block text-xs font-bold text-gray-700 mb-2">Instruksi</label>
+            <textarea class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition" name="instruction" rows="4" placeholder="Tuliskan instruksi untuk disposisi..." required>{{ old('instruction', $incomingLetter->instruction) }}</textarea>
+            @error('instruction')
+            <div class="text-red-500 text-xs mt-1">{{ $message }}</div>
+            @enderror
+          </div>
+          <div class="flex justify-end">
+            <button class="inline-flex items-center px-5 py-2.5 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 shadow-orange transition" type="submit">
+              <i class="bi bi-send me-2"></i> Simpan Instruksi
+            </button>
+          </div>
+        </form>
       </section>
-    @endif
+      @endif
 
-    <section class="card border-0 shadow-sm mt-3">
-      <div class="card-body">
-        <div class="d-flex align-items-center gap-2 fw-bold text-gray-900 mb-3">
-          <span class="d-inline-flex align-items-center justify-content-center rounded-2 bg-orange-100 text-orange-600 border border-orange-200 w-7 h-7 text-sm">
+      @if ($canInputFinal)
+      <section class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mt-4">
+        <div class="flex items-center gap-3 font-bold text-gray-900 mb-4">
+          <span class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-sm">
+            <i class="bi bi-check2-square"></i>
+          </span>
+          Arahan Final
+        </div>
+        @if ($incomingLetter->status === 'Selesai')
+        <div class="text-gray-500 text-sm">Surat sudah selesai diproses.</div>
+        @error('final_direction')
+        <div class="text-red-500 text-xs mt-1">{{ $message }}</div>
+        @enderror
+        <div class="flex justify-end">
+          <button class="inline-flex items-center px-5 py-2.5 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition" type="submit">
+            <i class="bi bi-check-circle me-2"></i> Tandai Selesai
+          </button>
+        </div>
+        </form>
+        @endif
+      </section>
+      @endif
+
+      <section class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mt-4">
+        <div class="flex items-center gap-3 font-bold text-gray-900 mb-4">
+          <span class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-sm">
             <i class="bi bi-paperclip"></i>
           </span>
           Lampiran Dokumen
         </div>
         @if ($attachment)
-          @php
-            $extension = strtolower(pathinfo($attachment['name'], PATHINFO_EXTENSION));
-            $fileBadge = $extension === 'pdf' ? 'PDF' : strtoupper(substr($extension, 0, 1));
-            $fileBadgeClass = match (true) {
-              in_array($extension, ['doc', 'docx'], true) => 'bg-blue-100 text-blue-700 border border-blue-200',
-              $extension === 'pdf' => 'bg-red-100 text-red-700 border border-red-200',
-              default => 'bg-gray-100 text-gray-700 border border-gray-200',
-            };
-          @endphp
-          <div class="d-flex align-items-center gap-3 border border-gray-200 rounded-3 p-3">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-2 px-2 py-1 fw-bold small {{ $fileBadgeClass }}">{{ $fileBadge }}</div>
-            <div>
-              <div class="fw-bold text-gray-900">{{ $attachment['name'] }}</div>
-              <div class="text-muted small">{{ strtoupper($extension) }} - {{ $attachment['size'] }}</div>
-            </div>
-            <div class="ms-auto d-flex gap-2">
-              <a class="btn btn-sm border border-[#ff7f00] text-[#ff7f00] hover:bg-orange-50 fw-bold" href="{{ $attachment['url'] }}" target="_blank" rel="noopener">Lihat</a>
-              <a class="btn btn-sm text-white bg-[#ff7f00] hover:bg-[#f36f00] border-0 fw-bold" href="{{ route('surat-masuk.download', $incomingLetter) }}">Unduh</a>
-            </div>
+        @php
+        $extension = strtolower(pathinfo($attachment['name'], PATHINFO_EXTENSION));
+        $fileBadge = $extension === 'pdf' ? 'PDF' : strtoupper(substr($extension, 0, 1));
+        $fileBadgeClass = match (true) {
+        in_array($extension, ['doc', 'docx'], true) => 'bg-blue-100 text-blue-700',
+        $extension === 'pdf' => 'bg-red-100 text-red-700',
+        default => 'bg-gray-100 text-gray-700',
+        };
+        $isPreviewable = in_array($extension, ['pdf', 'jpg', 'jpeg', 'png', 'gif'], true);
+        @endphp
+        <div class="flex items-center gap-4 border border-gray-200 rounded-xl p-4">
+          <div class="inline-flex items-center justify-center px-3 py-1 rounded-lg font-bold text-xs {{ $fileBadgeClass }}">{{ $fileBadge }}</div>
+          <div class="flex-1">
+            <div class="font-bold text-gray-900">{{ $attachment['name'] }}</div>
+            <div class="text-gray-500 text-xs">{{ strtoupper($extension) }} - {{ $attachment['size'] }}</div>
           </div>
-        @else
-          <div class="text-muted">Tidak ada lampiran untuk surat ini.</div>
+          <div class="flex gap-2">
+            @if (!empty($attachment['is_gdrive']) && !empty($attachment['view_url']))
+            <a class="inline-flex items-center px-4 py-2 border border-orange-500 text-orange-500 rounded-lg text-sm font-bold hover:bg-orange-50 transition no-underline" href="{{ $attachment['view_url'] }}" target="_blank" rel="noopener">Lihat</a>
+            @else
+            <a class="inline-flex items-center px-4 py-2 border border-orange-500 text-orange-500 rounded-lg text-sm font-bold hover:bg-orange-50 transition no-underline" href="{{ $attachment['url'] }}" target="_blank" rel="noopener">Lihat</a>
+            @endif
+            <a class="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-bold hover:bg-orange-600 transition no-underline" href="{{ route('surat-masuk.download', $incomingLetter) }}">Unduh</a>
+          </div>
+        </div>
+
+        {{-- Preview File untuk Google Drive --}}
+        @if (!empty($attachment['is_gdrive']) && !empty($attachment['preview_url']) && $isPreviewable)
+        <div class="mt-4">
+          <div class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Preview Dokumen</div>
+          <div class="w-full rounded-xl overflow-hidden border border-gray-200" style="height: 600px;">
+            <iframe src="{{ $attachment['preview_url'] }}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+          </div>
+        </div>
         @endif
-      </div>
-    </section>
+        @else
+        <div class="text-gray-500 text-sm">Tidak ada lampiran untuk surat ini.</div>
+        @endif
+      </section>
     </main>
   </div>
 </x-app-layout>

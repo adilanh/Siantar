@@ -71,7 +71,7 @@
         <section>
             <h6 class="font-bold mb-3">Aksi Cepat</h6>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <a href="{{ route('tambah-surat-masuk') }}" class="bg-cyan-50 border border-cyan-100 rounded-2xl p-4 flex gap-3 hover:border-cyan-200 hover:bg-cyan-100/70 transition">
+                <a href="{{ route('tambah-surat-masuk') }}" class="bg-cyan-50 border border-cyan-100 rounded-2xl p-4 flex gap-3 text-gray-900 no-underline hover:border-cyan-200 hover:bg-cyan-100/70 transition">
                     <div class="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-600 grid place-items-center text-lg flex-shrink-0">
                         <i class="bi bi-plus-circle"></i>
                     </div>
@@ -81,7 +81,7 @@
                     </div>
                 </a>
 
-                <a href="{{ route('surat-keluar.index') }}" class="bg-yellow-50 border border-yellow-100 rounded-2xl p-4 flex gap-3 hover:border-yellow-200 hover:bg-yellow-100/70 transition">
+                <a href="{{ route('surat-keluar.index') }}" class="bg-yellow-50 border border-yellow-100 rounded-2xl p-4 flex gap-3 text-gray-900 no-underline hover:border-yellow-200 hover:bg-yellow-100/70 transition">
                     <div class="w-10 h-10 rounded-xl bg-yellow-100 text-yellow-600 grid place-items-center text-lg flex-shrink-0">
                         <i class="bi bi-arrow-up-right"></i>
                     </div>
@@ -91,7 +91,7 @@
                     </div>
                 </a>
 
-                <a href="{{ route('cari-arsip') }}" class="bg-teal-50 border border-teal-100 rounded-2xl p-4 flex gap-3 hover:border-teal-200 hover:bg-teal-100/70 transition">
+                <a href="{{ route('cari-arsip') }}" class="bg-teal-50 border border-teal-100 rounded-2xl p-4 flex gap-3 text-gray-900 no-underline hover:border-teal-200 hover:bg-teal-100/70 transition">
                     <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-600 grid place-items-center text-lg flex-shrink-0">
                         <i class="bi bi-search"></i>
                     </div>
@@ -126,7 +126,7 @@
                 </div>
                 @endforeach
 
-                <a href="{{ route('surat-masuk.index') }}" class="mt-4 w-full rounded-xl bg-cyan-500 text-white font-bold py-2 hover:bg-cyan-600 text-center text-sm">
+                <a href="{{ route('surat-masuk.index') }}" class="mt-4 w-full rounded-xl bg-cyan-500 text-white font-bold py-2 hover:bg-cyan-600 text-center text-sm block no-underline">
                     Lihat Semua
                 </a>
             </div>
@@ -154,7 +154,7 @@
                 </div>
                 @endforeach
 
-                <a href="{{ route('surat-keluar.index') }}" class="mt-4 w-full rounded-xl bg-cyan-500 text-white font-bold py-2 hover:bg-cyan-600 text-center text-sm">
+                <a href="{{ route('surat-keluar.index') }}" class="mt-4 w-full rounded-xl bg-cyan-500 text-white font-bold py-2 hover:bg-cyan-600 text-center text-sm block no-underline">
                     Lihat Semua
                 </a>
             </div>

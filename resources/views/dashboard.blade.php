@@ -42,7 +42,7 @@
         <h6 class="font-bold mb-3">Aksi Cepat</h6>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           @foreach ($quickActions as $action)
-          <a href="{{ $action['href'] }}" class="bg-orange-50 border border-orange-100 rounded-2xl p-4 flex gap-3 hover:border-orange-200 hover:bg-orange-100/70 transition">
+          <a href="{{ $action['href'] }}" class="bg-orange-50 border border-orange-100 rounded-2xl p-4 flex gap-3 text-gray-900 no-underline hover:border-orange-200 hover:bg-orange-100/70 transition">
             <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-500 grid place-items-center text-lg flex-shrink-0">
               <i class="bi {{ $action['icon'] }}"></i>
             </div>

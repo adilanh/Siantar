@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\OutgoingLetter;
+use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class OutgoingLetterController extends Controller
 {
+    public function __construct(
+        protected GoogleDriveService $googleDrive
+    ) {}
     public function index(Request $request)
     {
         $query = OutgoingLetter::query()->latest('letter_date');
@@ -76,7 +80,36 @@ class OutgoingLetterController extends Controller
         $data['user_id'] = $request->user()->id;
 
         if ($request->hasFile('file')) {
-            $data['file_path'] = $request->file('file')->store('outgoing_letters', 'public');
+            $file = $request->file('file');
+            $originalFilename = $file->getClientOriginalName();
+            $mimeType = $file->getMimeType();
+            $fileSize = $file->getSize();
+
+            // Coba upload ke Google Drive terlebih dahulu
+            if ($this->googleDrive->isConfigured()) {
+                try {
+                    $gdriveResult = $this->googleDrive->uploadFile($file);
+
+                    if ($gdriveResult) {
+                        $data['gdrive_file_id'] = $gdriveResult['id'];
+                        $data['gdrive_file_name'] = $gdriveResult['name'];
+                        $data['original_filename'] = $originalFilename;
+                        $data['file_mime'] = $mimeType;
+                        $data['file_size'] = $fileSize;
+                        $data['storage_disk'] = 'google_drive';
+                    } else {
+                        // Upload gagal, fallback ke local
+                        $this->storeFileLocally($file, $data);
+                    }
+                } catch (\Exception $e) {
+                    // Fallback ke local storage jika Google Drive gagal
+                    \Log::warning('Google Drive upload failed, falling back to local storage: ' . $e->getMessage());
+                    $this->storeFileLocally($file, $data);
+                }
+            } else {
+                // Local storage jika Google Drive tidak dikonfigurasi
+                $this->storeFileLocally($file, $data);
+            }
         }
 
         OutgoingLetter::create($data);
@@ -86,33 +119,77 @@ class OutgoingLetterController extends Controller
 
     public function show(OutgoingLetter $outgoingLetter)
     {
-        $attachment = $this->buildAttachment($outgoingLetter->file_path);
+        $attachment = $this->buildAttachment($outgoingLetter);
 
         return view('detail-surat-keluar', compact('outgoingLetter', 'attachment'));
     }
 
     public function download(OutgoingLetter $outgoingLetter)
     {
-        if (!$outgoingLetter->file_path || !Storage::disk('public')->exists($outgoingLetter->file_path)) {
+        // Jika file disimpan di Google Drive
+        if ($outgoingLetter->gdrive_file_id) {
+            $downloadUrl = $this->googleDrive->getDownloadUrl($outgoingLetter->gdrive_file_id);
+            return redirect()->away($downloadUrl);
+        }
+
+        // Fallback ke local storage
+        $diskName = $outgoingLetter->storage_disk ?? $this->lettersDiskName();
+        $disk = Storage::disk($diskName);
+
+        if (!$outgoingLetter->file_path || !$disk->exists($outgoingLetter->file_path)) {
             return back()->with('error', 'File tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download($outgoingLetter->file_path);
+        return $this->streamDownload($disk, $outgoingLetter->file_path);
     }
 
-    private function buildAttachment(?string $path): ?array
+    private function buildAttachment(OutgoingLetter $letter): ?array
     {
-        if (!$path || !Storage::disk('public')->exists($path)) {
+        // Jika file di Google Drive
+        if ($letter->gdrive_file_id) {
+            return [
+                'name' => $letter->gdrive_file_name ?? $letter->original_filename ?? 'File',
+                'size' => $this->formatBytes($letter->file_size ?? 0),
+                'url' => route('surat-keluar.download', $letter),
+                'preview_url' => $this->googleDrive->getPreviewUrl($letter->gdrive_file_id),
+                'view_url' => $this->googleDrive->getViewUrl($letter->gdrive_file_id),
+                'is_gdrive' => true,
+                'mime_type' => $letter->file_mime,
+            ];
+        }
+
+        // Fallback ke local storage
+        $path = $letter->file_path;
+        if (!$path) {
             return null;
         }
 
-        $size = Storage::disk('public')->size($path);
+        $disk = Storage::disk($letter->storage_disk ?? $this->lettersDiskName());
+        if (!$disk->exists($path)) {
+            return null;
+        }
+
+        $size = $this->safeSize($disk, $path);
 
         return [
-            'name' => basename($path),
+            'name' => $letter->original_filename ?? basename($path),
             'size' => $this->formatBytes($size),
-            'url' => Storage::disk('public')->url($path),
+            'url' => route('surat-keluar.download', $letter),
+            'is_gdrive' => false,
+            'mime_type' => $letter->file_mime,
         ];
+    }
+
+    private function storeFileLocally($file, array &$data): void
+    {
+        $disk = $this->lettersDiskName();
+        $path = $file->store('outgoing_letters', $disk);
+
+        $data['file_path'] = $path;
+        $data['storage_disk'] = $disk;
+        $data['original_filename'] = $file->getClientOriginalName();
+        $data['file_mime'] = $file->getMimeType();
+        $data['file_size'] = $file->getSize();
     }
 
     private function formatBytes(int $bytes): string
@@ -124,5 +201,39 @@ class OutgoingLetterController extends Controller
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $i = (int) floor(log($bytes, 1024));
         return round($bytes / pow(1024, $i), 2) . ' ' . $units[$i];
+    }
+
+    private function lettersDiskName(): string
+    {
+        return config('filesystems.letters_disk', 'public');
+    }
+
+    private function lettersDisk()
+    {
+        return Storage::disk($this->lettersDiskName());
+    }
+
+    private function safeSize($disk, string $path): int
+    {
+        try {
+            return $disk->size($path);
+        } catch (\Throwable $exception) {
+            return 0;
+        }
+    }
+
+    private function streamDownload($disk, string $path)
+    {
+        $stream = $disk->readStream($path);
+        if (!$stream) {
+            return back()->with('error', 'File tidak ditemukan.');
+        }
+
+        return response()->streamDownload(function () use ($stream) {
+            fpassthru($stream);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }, basename($path));
     }
 }
