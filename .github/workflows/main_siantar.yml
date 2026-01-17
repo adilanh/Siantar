@@ -54,17 +54,9 @@ jobs:
 
       - name: Create deployment package
         run: |
-          zip -r deploy.zip . \
-            -x "node_modules/*" \
-            -x ".git/*" \
-            -x "tests/*" \
-            -x ".env" \
-            -x "*.md" \
-            -x ".github/*" \
-            -x "storage/logs/*" \
-            -x "storage/framework/cache/*" \
-            -x "storage/framework/sessions/*" \
-            -x "storage/framework/views/*"
+          mkdir -p deploy
+          rsync -av --exclude='node_modules' --exclude='.git' --exclude='tests' --exclude='.env' --exclude='*.md' --exclude='.github' --exclude='storage/logs/*' --exclude='storage/framework/cache/data/*' --exclude='storage/framework/sessions/*' --exclude='storage/framework/views/*' --exclude='deploy.zip' . deploy/
+          cd deploy && zip -r ../deploy.zip .
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
@@ -85,13 +77,10 @@ jobs:
         with:
           name: laravel-app
 
-      - name: Unzip artifact
-        run: unzip deploy.zip -d ./deploy
-
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./deploy
+          package: deploy.zip
