@@ -110,12 +110,21 @@
                 <label class="inline-flex items-center px-4 py-2 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 cursor-pointer transition" for="lampiran-file-masuk">
                   <i class="bi bi-folder2-open me-2"></i>Pilih File
                 </label>
-                <button class="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition" type="button" data-upload-ignore>
+                <button class="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition" type="button" data-upload-ignore id="btn-open-camera">
                   <i class="bi bi-camera me-2"></i>Buka Kamera
                 </button>
               </div>
               <div class="mt-3" data-upload-preview>
                 <div class="text-gray-400 text-sm" data-upload-empty>Belum ada file dipilih.</div>
+              </div>
+              <!-- Custom filename input -->
+              <div class="w-full max-w-md mt-3 hidden" id="custom-filename-wrapper">
+                <label class="block text-xs font-bold text-gray-700 mb-2 text-left">Nama File (opsional)</label>
+                <div class="flex items-center gap-2">
+                  <input type="text" name="custom_filename" id="custom-filename-input" class="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition" placeholder="Masukkan nama file..." />
+                  <span id="file-extension" class="text-sm text-gray-500 font-mono">.pdf</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-1 text-left">Kosongkan untuk menggunakan nama file asli</p>
               </div>
             </div>
             <div class="absolute inset-0 rounded-2xl bg-orange-50/80 flex items-center justify-center opacity-0 transition-opacity pointer-events-none" data-drop-overlay>
@@ -305,13 +314,234 @@
 
         fileInput.addEventListener('change', () => {
           updatePreviewFromInput();
+          showCustomFilenameInput(fileInput);
         });
 
         fileInput.addEventListener('input', () => {
           updatePreviewFromInput();
+          showCustomFilenameInput(fileInput);
         });
 
         resetPreview();
+      });
+
+      // Custom filename functionality
+      function showCustomFilenameInput(fileInput) {
+        const wrapper = document.getElementById('custom-filename-wrapper');
+        const input = document.getElementById('custom-filename-input');
+        const extSpan = document.getElementById('file-extension');
+
+        if (fileInput.files && fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          const fileName = file.name;
+          const lastDot = fileName.lastIndexOf('.');
+          const ext = lastDot > 0 ? fileName.substring(lastDot) : '';
+          const nameWithoutExt = lastDot > 0 ? fileName.substring(0, lastDot) : fileName;
+
+          wrapper.classList.remove('hidden');
+          input.placeholder = nameWithoutExt;
+          extSpan.textContent = ext;
+        } else {
+          wrapper.classList.add('hidden');
+          input.value = '';
+        }
+      }
+    })();
+  </script>
+
+  <!-- Camera Modal -->
+  <div id="camera-modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full mx-4 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <h3 class="font-bold text-gray-900">Ambil Foto Surat</h3>
+        <button type="button" id="btn-close-camera" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition">
+          <i class="bi bi-x-lg text-gray-500"></i>
+        </button>
+      </div>
+      <div class="p-5">
+        <div class="relative bg-black rounded-xl overflow-hidden aspect-video">
+          <video id="camera-video" class="w-full h-full object-cover" autoplay playsinline></video>
+          <canvas id="camera-canvas" class="hidden"></canvas>
+          <div id="camera-loading" class="absolute inset-0 flex items-center justify-center bg-gray-900">
+            <div class="text-center text-white">
+              <div class="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent mx-auto mb-2"></div>
+              <p class="text-sm">Mengakses kamera...</p>
+            </div>
+          </div>
+          <div id="camera-error" class="absolute inset-0 flex items-center justify-center bg-gray-900 hidden">
+            <div class="text-center text-white px-4">
+              <i class="bi bi-camera-video-off text-4xl mb-2"></i>
+              <p class="text-sm">Tidak dapat mengakses kamera. Pastikan Anda memberikan izin akses kamera.</p>
+            </div>
+          </div>
+        </div>
+        <div id="camera-preview-container" class="hidden mt-4">
+          <p class="text-sm text-gray-500 mb-2">Hasil foto:</p>
+          <img id="camera-preview-img" class="rounded-xl border border-gray-200 max-h-48 mx-auto" />
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-3 px-5 py-4 border-t border-gray-100">
+        <button type="button" id="btn-retake" class="hidden px-4 py-2 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition">
+          <i class="bi bi-arrow-counterclockwise me-2"></i>Ulangi
+        </button>
+        <button type="button" id="btn-capture" class="px-4 py-2 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition">
+          <i class="bi bi-camera me-2"></i>Ambil Foto
+        </button>
+        <button type="button" id="btn-use-photo" class="hidden px-4 py-2 bg-green-500 text-white rounded-xl text-sm font-bold hover:bg-green-600 transition">
+          <i class="bi bi-check-lg me-2"></i>Gunakan Foto
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const btnOpenCamera = document.getElementById('btn-open-camera');
+      const modal = document.getElementById('camera-modal');
+      const btnCloseCamera = document.getElementById('btn-close-camera');
+      const video = document.getElementById('camera-video');
+      const canvas = document.getElementById('camera-canvas');
+      const btnCapture = document.getElementById('btn-capture');
+      const btnRetake = document.getElementById('btn-retake');
+      const btnUsePhoto = document.getElementById('btn-use-photo');
+      const cameraLoading = document.getElementById('camera-loading');
+      const cameraError = document.getElementById('camera-error');
+      const previewContainer = document.getElementById('camera-preview-container');
+      const previewImg = document.getElementById('camera-preview-img');
+      const fileInput = document.getElementById('lampiran-file-masuk');
+
+      let stream = null;
+      let capturedBlob = null;
+
+      const openCamera = async () => {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        cameraLoading.classList.remove('hidden');
+        cameraError.classList.add('hidden');
+        previewContainer.classList.add('hidden');
+        btnCapture.classList.remove('hidden');
+        btnRetake.classList.add('hidden');
+        btnUsePhoto.classList.add('hidden');
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: 'environment',
+              width: {
+                ideal: 1920
+              },
+              height: {
+                ideal: 1080
+              }
+            },
+            audio: false
+          });
+          video.srcObject = stream;
+          video.onloadedmetadata = () => {
+            cameraLoading.classList.add('hidden');
+          };
+        } catch (err) {
+          console.error('Camera error:', err);
+          cameraLoading.classList.add('hidden');
+          cameraError.classList.remove('hidden');
+        }
+      };
+
+      const closeCamera = () => {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+        }
+        video.srcObject = null;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        capturedBlob = null;
+      };
+
+      const capturePhoto = () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+
+        canvas.toBlob((blob) => {
+          capturedBlob = blob;
+          previewImg.src = URL.createObjectURL(blob);
+          previewContainer.classList.remove('hidden');
+          btnCapture.classList.add('hidden');
+          btnRetake.classList.remove('hidden');
+          btnUsePhoto.classList.remove('hidden');
+
+          // Pause video
+          if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+          }
+        }, 'image/jpeg', 0.9);
+      };
+
+      const retakePhoto = async () => {
+        capturedBlob = null;
+        previewContainer.classList.add('hidden');
+        btnCapture.classList.remove('hidden');
+        btnRetake.classList.add('hidden');
+        btnUsePhoto.classList.add('hidden');
+
+        // Restart camera
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: 'environment',
+              width: {
+                ideal: 1920
+              },
+              height: {
+                ideal: 1080
+              }
+            },
+            audio: false
+          });
+          video.srcObject = stream;
+        } catch (err) {
+          console.error('Camera error:', err);
+        }
+      };
+
+      const usePhoto = () => {
+        if (!capturedBlob) return;
+
+        const fileName = `foto_surat_${Date.now()}.jpg`;
+        const file = new File([capturedBlob], fileName, {
+          type: 'image/jpeg'
+        });
+
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+
+        // Trigger change event
+        fileInput.dispatchEvent(new Event('change', {
+          bubbles: true
+        }));
+
+        closeCamera();
+      };
+
+      btnOpenCamera.addEventListener('click', openCamera);
+      btnCloseCamera.addEventListener('click', closeCamera);
+      btnCapture.addEventListener('click', capturePhoto);
+      btnRetake.addEventListener('click', retakePhoto);
+      btnUsePhoto.addEventListener('click', usePhoto);
+
+      // Close modal on backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeCamera();
+      });
+
+      // Close on escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+          closeCamera();
+        }
       });
     })();
   </script>

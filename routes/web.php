@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/surat-masuk/{incomingLetter}/preview', [IncomingLetterController::class, 'preview'])->name('surat-masuk.preview');
     Route::patch('/surat-masuk/{incomingLetter}/instruksi', [IncomingLetterController::class, 'updateInstruction'])->name('surat-masuk.instruction');
     Route::patch('/surat-masuk/{incomingLetter}/arahan-final', [IncomingLetterController::class, 'updateFinalDirection'])->name('surat-masuk.final-direction');
+    Route::delete('/surat-masuk/{incomingLetter}', [IncomingLetterController::class, 'destroy'])->name('surat-masuk.destroy');
 
     Route::get('/surat-keluar', [OutgoingLetterController::class, 'index'])->name('surat-keluar.index');
     Route::post('/surat-keluar', [OutgoingLetterController::class, 'store'])->name('surat-keluar.store');
@@ -49,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/surat-keluar/{outgoingLetter}', [OutgoingLetterController::class, 'update'])->name('surat-keluar.update');
     Route::get('/surat-keluar/{outgoingLetter}/download', [OutgoingLetterController::class, 'download'])->name('surat-keluar.download');
     Route::get('/surat-keluar/{outgoingLetter}/preview', [OutgoingLetterController::class, 'preview'])->name('surat-keluar.preview');
+    Route::delete('/surat-keluar/{outgoingLetter}', [OutgoingLetterController::class, 'destroy'])->name('surat-keluar.destroy');
 
     Route::get('/tambah-surat', function () {
         if (!request()->user()->hasAnyRole(['sekretariat', 'admin'])) {

@@ -76,6 +76,7 @@ class OutgoingLetterController extends Controller
             'instruction_number' => ['nullable', 'string', 'max:100'],
             'package_number' => ['nullable', 'string', 'max:100'],
             'file' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:20480'],
+            'custom_filename' => ['nullable', 'string', 'max:255'],
         ]);
 
         $data['status'] = $data['status'] ?? 'Menunggu';
@@ -86,6 +87,9 @@ class OutgoingLetterController extends Controller
             $originalFilename = $file->getClientOriginalName();
             $mimeType = $file->getMimeType();
             $fileSize = $file->getSize();
+
+            // Handle custom filename
+            $customFilename = $request->input('custom_filename');
 
             // TEMPORARILY DISABLED: Google Drive upload untuk presentasi
             // Uncomment blok di bawah ini untuk mengaktifkan kembali Google Drive
@@ -118,8 +122,11 @@ class OutgoingLetterController extends Controller
             */
 
             // Sementara langsung simpan ke local storage
-            $this->storeFileLocally($file, $data);
+            $this->storeFileLocally($file, $data, $customFilename);
         }
+
+        // Remove custom_filename from data as it's not a database column
+        unset($data['custom_filename']);
 
         OutgoingLetter::create($data);
 
@@ -273,14 +280,30 @@ class OutgoingLetterController extends Controller
         ];
     }
 
-    private function storeFileLocally($file, array &$data): void
+    private function storeFileLocally($file, array &$data, ?string $customFilename = null): void
     {
         $disk = $this->lettersDiskName();
-        $path = $file->store('outgoing_letters', $disk);
+        $originalFilename = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+
+        // Use custom filename if provided, otherwise use original
+        if ($customFilename && trim($customFilename) !== '') {
+            $filename = preg_replace('/[^a-zA-Z0-9_\-\s]/', '', trim($customFilename));
+            $filename = str_replace(' ', '_', $filename);
+            $filename = $filename . '.' . $extension;
+        } else {
+            $filename = $originalFilename;
+        }
+
+        // Ensure unique filename
+        $path = 'outgoing_letters/' . time() . '_' . $filename;
+        $file->storeAs('outgoing_letters', time() . '_' . $filename, $disk);
 
         $data['file_path'] = $path;
         $data['storage_disk'] = $disk;
-        $data['original_filename'] = $file->getClientOriginalName();
+        $data['original_filename'] = $customFilename && trim($customFilename) !== ''
+            ? trim($customFilename) . '.' . $extension
+            : $originalFilename;
         $data['file_mime'] = $file->getMimeType();
         $data['file_size'] = $file->getSize();
     }
@@ -328,5 +351,34 @@ class OutgoingLetterController extends Controller
                 fclose($stream);
             }
         }, basename($path));
+    }
+
+    public function destroy(Request $request, OutgoingLetter $outgoingLetter)
+    {
+        if (!$request->user()->hasAnyRole(['sekretariat', 'admin'])) {
+            abort(403);
+        }
+
+        // Hapus file lampiran jika ada
+        if ($outgoingLetter->file_path) {
+            $disk = $this->lettersDisk();
+            if ($disk->exists($outgoingLetter->file_path)) {
+                $disk->delete($outgoingLetter->file_path);
+            }
+        }
+
+        // Hapus dari Google Drive jika ada
+        if ($outgoingLetter->gdrive_file_id && $this->googleDrive->isConfigured()) {
+            try {
+                $this->googleDrive->deleteFile($outgoingLetter->gdrive_file_id);
+            } catch (\Exception $e) {
+                // Log error tapi jangan gagalkan proses hapus
+                \Log::warning('Gagal hapus file dari Google Drive: ' . $e->getMessage());
+            }
+        }
+
+        $outgoingLetter->delete();
+
+        return redirect()->route('surat-keluar.index')->with('success', 'Surat keluar berhasil dihapus.');
     }
 }

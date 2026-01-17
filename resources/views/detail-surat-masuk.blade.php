@@ -38,9 +38,18 @@
             @endif
           </div>
           @if (auth()->user()->hasAnyRole(['sekretariat', 'admin']))
-          <a href="{{ route('surat-masuk.edit', $incomingLetter) }}" class="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition no-underline">
-            <i class="bi bi-pencil-square me-2"></i> Edit Surat
-          </a>
+          <div class="flex gap-2">
+            <a href="{{ route('surat-masuk.edit', $incomingLetter) }}" class="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition no-underline">
+              <i class="bi bi-pencil-square me-2"></i> Edit Surat
+            </a>
+            <form action="{{ route('surat-masuk.destroy', $incomingLetter) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus surat ini? Tindakan ini tidak dapat dibatalkan.')">
+              @csrf
+              @method('DELETE')
+              <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition">
+                <i class="bi bi-trash me-2"></i> Hapus
+              </button>
+            </form>
+          </div>
           @endif
         </div>
 

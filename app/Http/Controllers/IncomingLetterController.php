@@ -83,6 +83,7 @@ class IncomingLetterController extends Controller
             'instruction_number' => ['nullable', 'string', 'max:100'],
             'package_number' => ['nullable', 'string', 'max:100'],
             'file' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:20480'],
+            'custom_filename' => ['nullable', 'string', 'max:255'],
         ]);
 
         $data['status'] = $data['status'] ?? 'Baru';
@@ -94,6 +95,9 @@ class IncomingLetterController extends Controller
             $originalFilename = $file->getClientOriginalName();
             $mimeType = $file->getMimeType();
             $fileSize = $file->getSize();
+
+            // Handle custom filename
+            $customFilename = $request->input('custom_filename');
 
             // TEMPORARILY DISABLED: Google Drive upload untuk presentasi
             // Uncomment blok di bawah ini untuk mengaktifkan kembali Google Drive
@@ -126,8 +130,11 @@ class IncomingLetterController extends Controller
             */
 
             // Sementara langsung simpan ke local storage
-            $this->storeFileLocally($file, $data);
+            $this->storeFileLocally($file, $data, $customFilename);
         }
+
+        // Remove custom_filename from data as it's not a database column
+        unset($data['custom_filename']);
 
         IncomingLetter::create($data);
 
@@ -331,14 +338,30 @@ class IncomingLetterController extends Controller
         ];
     }
 
-    private function storeFileLocally($file, array &$data): void
+    private function storeFileLocally($file, array &$data, ?string $customFilename = null): void
     {
         $disk = $this->lettersDiskName();
-        $path = $file->store('incoming_letters', $disk);
+        $originalFilename = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+
+        // Use custom filename if provided, otherwise use original
+        if ($customFilename && trim($customFilename) !== '') {
+            $filename = preg_replace('/[^a-zA-Z0-9_\-\s]/', '', trim($customFilename));
+            $filename = str_replace(' ', '_', $filename);
+            $filename = $filename . '.' . $extension;
+        } else {
+            $filename = $originalFilename;
+        }
+
+        // Ensure unique filename
+        $path = 'incoming_letters/' . time() . '_' . $filename;
+        $file->storeAs('incoming_letters', time() . '_' . $filename, $disk);
 
         $data['file_path'] = $path;
         $data['storage_disk'] = $disk;
-        $data['original_filename'] = $file->getClientOriginalName();
+        $data['original_filename'] = $customFilename && trim($customFilename) !== ''
+            ? trim($customFilename) . '.' . $extension
+            : $originalFilename;
         $data['file_mime'] = $file->getMimeType();
         $data['file_size'] = $file->getSize();
     }
@@ -400,5 +423,34 @@ class IncomingLetterController extends Controller
                 $query->whereIn('role', ['sekretariat', 'admin']);
             });
         }
+    }
+
+    public function destroy(Request $request, IncomingLetter $incomingLetter)
+    {
+        if (!$request->user()->hasAnyRole(['sekretariat', 'admin'])) {
+            abort(403);
+        }
+
+        // Hapus file lampiran jika ada
+        if ($incomingLetter->file_path) {
+            $disk = $this->lettersDisk();
+            if ($disk->exists($incomingLetter->file_path)) {
+                $disk->delete($incomingLetter->file_path);
+            }
+        }
+
+        // Hapus dari Google Drive jika ada
+        if ($incomingLetter->gdrive_file_id && $this->googleDrive->isConfigured()) {
+            try {
+                $this->googleDrive->deleteFile($incomingLetter->gdrive_file_id);
+            } catch (\Exception $e) {
+                // Log error tapi jangan gagalkan proses hapus
+                \Log::warning('Gagal hapus file dari Google Drive: ' . $e->getMessage());
+            }
+        }
+
+        $incomingLetter->delete();
+
+        return redirect()->route('surat-masuk.index')->with('success', 'Surat masuk berhasil dihapus.');
     }
 }
